@@ -1,8 +1,11 @@
 //[GET]/adim/dashboard
 const Product = require("../../models/product.model");
+const ProductCategory = require("../../models/product-category.model");
 const filterStateHelper = require("../../helpers/filter-state.helper");
 const paginationHelper = require("../../helpers/pagination.helper");
 const systemConfig = require("../../config/system");
+const createTreeHelper = require("../../helpers/create-tree.helper");
+
 //[GET] /admin/product/
 module.exports.index = async (req, res) => {
     try {
@@ -28,10 +31,17 @@ module.exports.index = async (req, res) => {
         const objectPagination = paginationHelper(4, req.query, countProducts);
         //end Pagination
 
+        //sort
+        const sort = {};
+        if(req.query.sortKey && req.query.sortValue){
+            sort[req.query.sortKey] = req.query.sortValue
+        } else {
+            sort["position"] = "desc";
+        }
+        // end sord
+
         const products = await Product.find(find)
-            .sort({
-                position: "asc"
-            })
+            .sort(sort)
             .limit(objectPagination.limitItems) // lay 4 sp 
             .skip(objectPagination.skip); //so phan tu bo qua
 
@@ -135,8 +145,14 @@ module.exports.deleteItem = async (req, res) => {
 
 // [GET]/admin/products/create
 module.exports.create = async (req, res) => {
+    const records = await ProductCategory.find({
+        deleted: false,
+      });
+    
+      const newRecords = createTreeHelper(records);
     res.render("admin/pages/products/create", {
         pageTitle: "Thêm mới sản phẩm",
+        records: newRecords
     });
 };
 
@@ -154,10 +170,13 @@ module.exports.createPost = async (req, res) => {
         req.body.position = parseInt(req.body.position);
     }
 
+    console.log(req.file);
+    console.log(req.body);
+
     // console.log(req.file);
-    if (req.file && req.file.filename) {
-        req.body.thumbnail = `/uploads/${req.file.filename}`;
-    }
+    // if (req.file && req.file.filename) {
+    //     req.body.thumbnail = `/uploads/${req.file.filename}`;
+    // }
 
     const product = new Product(req.body);
     await product.save(); //Lưu lại vào database
@@ -177,13 +196,19 @@ module.exports.edit = async (req, res) => {
         const product = await Product.findOne({
             _id: id,
             deleted: false
-        })
+        });
+        const records = await ProductCategory.find({
+            deleted: false,
+          });
+      
+          const newRecords = createTreeHelper(records);
 
-        console.log(product);
+        // console.log(product);
 
         res.render("admin/pages/products/edit", {
             pageTitle: "Sửa sản phẩm",
-            product: product
+            product: product,
+            records: newRecords
         });
     } catch (error) {
         console.log(error);

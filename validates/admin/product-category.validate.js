@@ -5,10 +5,5 @@ module.exports.createPost = async (req, res, next) =>{
         return;
     }
 
-    if(req.body.title.length < 5){
-        req.flash("error", "Tiêu đề phải chứa ít nhất 5 kí tự!");
-        res.redirect("back");
-        return;
-    }
     next();
 }

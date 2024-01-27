@@ -1,9 +1,11 @@
-const express = require("express");
+const dashboardRoutes = require("./dashboard.route");
+const productRoutes = require("./product.route");
+const systemConfig = require("../../config/system");
 
-const router = express.Router();
+module.exports = (app) =>{
+  const PATH_ADMIN = `/${systemConfig.prefix_Admin}`;
+  
+  app.use(`${PATH_ADMIN}/dashboard`, dashboardRoutes);
 
-const controller = require("../../controllers/admin/dashboard.controller");
-
-router.get("/", controller.index);
-
-module.exports = router;
+  app.use(`${PATH_ADMIN}/products`, productRoutes);
+}
