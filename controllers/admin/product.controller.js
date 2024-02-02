@@ -1,6 +1,6 @@
-//[GET]/adim/dashboard
 const Product = require("../../models/product.model");
 const ProductCategory = require("../../models/product-category.model");
+const Account = require("../../models/account.model");
 const filterStateHelper = require("../../helpers/filter-state.helper");
 const paginationHelper = require("../../helpers/pagination.helper");
 const systemConfig = require("../../config/system");
@@ -36,7 +36,7 @@ module.exports.index = async (req, res) => {
         if(req.query.sortKey && req.query.sortValue){
             sort[req.query.sortKey] = req.query.sortValue
         } else {
-            sort["position"] = "desc";
+            sort["position"] = "asc";
         }
         // end sord
 
@@ -44,6 +44,16 @@ module.exports.index = async (req, res) => {
             .sort(sort)
             .limit(objectPagination.limitItems) // lay 4 sp 
             .skip(objectPagination.skip); //so phan tu bo qua
+        
+            for (const product of products) {
+                const account = await Account.findOne({
+                  _id: product.createdBy.accountId
+                });
+          
+                if(account) {
+                  product.createdBy.fullName = account.fullName;
+                }
+              }
 
         res.render("admin/pages/products/index", {
             // trả dữ liệu ra views        
@@ -65,10 +75,17 @@ module.exports.index = async (req, res) => {
 module.exports.changeStatus = async (req, res) => {
     const status = req.params.status;
     const id = req.params.id;
+
+    const objectUpdatedBy = {
+        accountId: res.locals.user.id,
+        updatedAt: new Date()
+      };
+
     await Product.updateOne({
         _id: id
     }, {
-        status: status
+        status: status,
+        $push: { updatedBy: objectUpdatedBy}
     });
 
     req.flash('success', 'Cập nhật trạng thái thành công!');
@@ -132,7 +149,11 @@ module.exports.deleteItem = async (req, res) => {
             _id: id        // tìm đến id giống như id được gửi lên
         }, {
             deleted: true,   //cập nhật deleted trong databse
-            deledtedAt: new Date() // lây ra thời gian hiện tại
+            deleted: true,
+            deletedBy: {
+                accountId: res.locals.user.id,
+                deletedAt: new Date()
+            } // lây ra thời gian hiện tại
         });
 
     } catch (error) {
@@ -170,13 +191,10 @@ module.exports.createPost = async (req, res) => {
         req.body.position = parseInt(req.body.position);
     }
 
-    console.log(req.file);
-    console.log(req.body);
-
-    // console.log(req.file);
-    // if (req.file && req.file.filename) {
-    //     req.body.thumbnail = `/uploads/${req.file.filename}`;
-    // }
+    req.body.createdBy = {
+        accountId: res.locals.user.id,
+        createdAt: new Date()
+      };
 
     const product = new Product(req.body);
     await product.save(); //Lưu lại vào database
@@ -232,10 +250,18 @@ module.exports.editPatch = async (req, res) => {
             req.body.thumbnail = `/uploads/${req.file.filename}`;
         }
 
+        const objectUpdatedBy = {
+            accountId: res.locals.user.id,
+            updatedAt: new Date()
+          };
+
         await Product.updateOne({
             _id: id,
             deleted: false
-        }, req.body); //Lưu lại vào database
+        }, {
+            ...req.body,
+            $push: { updatedBy: objectUpdatedBy }
+          }); //Lưu lại vào database
 
         //console.log(req.body);  // lấy data của font-end gửi lên
 

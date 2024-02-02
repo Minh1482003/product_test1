@@ -3,5 +3,14 @@ header.header
     .row.align-items-center
       .col-3
         .inner-logo
-          a(href=`/${prefixAdmin}/dashboard`) ADMIM
+          a(href=`/${prefix_Admin}/dashboard`) ADMIM
       .cod-9 
+        div(class="text-right")
+          a(
+            href=`/${prefix_Admin}/my-account`
+            class="btn btn-primary btn-sm mr-2"
+          ) #{user.fullName}
+          a(
+            href=`/${prefix_Admin}/auth/logout`
+            class="btn btn-danger btn-sm"
+          ) Đăng xuất

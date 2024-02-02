@@ -4,28 +4,18 @@ const multer = require("multer");
 
 const upload = multer();
 
-const controller = require("../../controllers/admin/account.controller");
+const controller = require("../../controllers/admin/my-account.controller");
 const uploadCloud = require("../../middlewares/admin/uploadCloud.midleware");
 
 router.get("/", controller.index);
 
-router.get("/create", controller.create);
-
-router.post(
-  "/create",
-  upload.single("avatar"),
-  uploadCloud.uploadSingle,
-  controller.createPost
-);
-
-router.get("/edit/:id", controller.edit);
+router.get("/edit", controller.edit);
 
 router.patch(
-  "/edit/:id",
+  "/edit",
   upload.single("avatar"),
   uploadCloud.uploadSingle,
   controller.editPatch
 );
-
 
 module.exports = router;

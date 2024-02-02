@@ -9,6 +9,7 @@ const flash = require('express-flash');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const path = require('path');
+const moment = require('moment');
 
 dotenv.config();
 
@@ -43,6 +44,8 @@ app.use(flash());
 //end flash
 
 app.locals.prefix_Admin = systemConfig.prefix_Admin;
+
+app.locals.moment = moment;
 
 routesAdmin(app);
 
